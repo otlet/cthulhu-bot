@@ -20,7 +20,7 @@ func throw(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if len(command) >= 3 {
 		i, err := strconv.Atoi(command[2])
 		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, "A pałą przez łeb dawno nie dostałeś? ILE RAZY MAM RZUCIĆ TO CYFRA, a nie...")
+			s.ChannelMessageSend(m.ChannelID, "A pałą przez łeb dawno nie dostałeś? ILE RAZY MAM RZUCIĆ KOSTKĄ TO CYFRA, a nie...")
 		return
 		}
 		howManyThrow = i

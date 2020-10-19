@@ -36,6 +36,7 @@ func main() {
 		return
 	}
 
+	dg.AddHandler(ready)
 	dg.AddHandler(messageCreate)
 
 	// In this example, we only care about receiving message events.
@@ -55,6 +56,10 @@ func main() {
 
 	fmt.Println("\nBay Bay Maszkaro!")
 	dg.Close()
+}
+
+func ready(s *discordgo.Session, event *discordgo.Ready) {
+	s.UpdateStatus(0, "jestemgraczem.pl")
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
