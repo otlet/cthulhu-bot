@@ -19,17 +19,15 @@ import (
 
 var (
 	token string
+	// messagez []string
 )
 
 func init() {
-
 	flag.StringVar(&token, "t", "", "Bot Token")
 	flag.Parse()
 }
 
 func main() {
-
-	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
@@ -39,10 +37,8 @@ func main() {
 	dg.AddHandler(ready)
 	dg.AddHandler(messageCreate)
 
-	// In this example, we only care about receiving message events.
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
 
-	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
@@ -59,10 +55,12 @@ func main() {
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	s.UpdateStatus(0, "jestemgraczem.pl")
+	s.UpdateStatus(1, "IDKCloud.com")
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// messagez = append(messagez, m.Content)
+	// fmt.Println(messagez)
 	fmt.Printf("%v on %v: %v\n", m.Author.Username, m.ChannelID, m.Content)
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -75,23 +73,33 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	command := strings.Split(m.Content, " ")
 
 	switch command[0] {
+	case "->jebnijBasemSynu":
+		s.ChannelMessageSend(m.ChannelID, "@everyone")
 	case "->throw":
 		throw(s, m)
 	case "->testimage":
 		testImage(s, m)
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("->Gotowe %v", m.Author.Username))
+	// case "->showAllMessages":
+	// 	for _, i := range messagez {
+	// 		s.ChannelMessageSend(m.ChannelID, i)
+	// 	}
+	// 	messagez = messagez[:0]
 	default:
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("->NieWkurwiajMnie %v", m.Author.Username))
 	}
 }
 
 func addLabel(img *image.RGBA, x, y int, label string) {
-	col := color.RGBA{255, 255, 0, 255}
-    point := fixed.Point26_6{fixed.Int26_6(x * 64), fixed.Int26_6(y * 64)}
+	color := color.RGBA{255, 0, 0, 255}
+	point := fixed.Point26_6{
+		X: fixed.Int26_6(x * 64),
+		Y: fixed.Int26_6(y * 64),
+	}
 
 	d := &font.Drawer{
 		Dst:  img,
-		Src:  image.NewUniform(col),
+		Src:  image.NewUniform(color),
 		Face: basicfont.Face7x13,
 		Dot:  point,
 	}
@@ -99,32 +107,36 @@ func addLabel(img *image.RGBA, x, y int, label string) {
 }
 
 func testImage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	img := image.NewRGBA(image.Rect(0, 0, 100, 100))
-	addLabel(img, 20, 30, "Hello Go")
+	img := image.NewRGBA(image.Rect(0, 0, 640, 360))
+	welcomeText := fmt.Sprintf("Witaj %v", m.Author.Username)
+	addLabel(img, 10, 30, welcomeText)
+	addLabel(img, 10, 45, "***** ***")
 
-	f, err := os.Create(fmt.Sprintf("/tmp/discordgo/welcome_%v.png", m.Author.Username))
+	fileName := fmt.Sprintf("/tmp/discordgo/welcome_%v.png", m.Author.Username)
+	f, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
-	// var f io.Writer
+
 	if err := png.Encode(f, img); err != nil {
 		panic(err)
 	}
-	// file := discordgo.File{
-	// 	Name:        fmt.Sprintf("%v", m.Author.Username),
-	// 	ContentType: "image/png",
-	// 	Reader:      f,
-	// }
+	f.Close()
 
-	// message := discordgo.MessageSend{
-	// 	File: &file,
-	// }
-	_, err = s.ChannelFileSend(m.ChannelID, "asd", f)
-	if err!=nil {
+	f, err = os.Open(fileName)
+	if err != nil {
 		panic(err)
 	}
-	// return f
-	// foo := bufio.NewWriter(f)
-	// return foo
+
+	_, err = s.ChannelFileSend(m.ChannelID, "asd.png", f)
+	if err != nil {
+		panic(err)
+	}
+
+	f.Close()
+
+	err = os.Remove(fileName)
+	if err != nil {
+		panic(err)
+	}
 }

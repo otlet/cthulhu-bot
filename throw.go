@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -21,7 +21,7 @@ func throw(s *discordgo.Session, m *discordgo.MessageCreate) {
 		i, err := strconv.Atoi(command[2])
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, "A pałą przez łeb dawno nie dostałeś? ILE RAZY MAM RZUCIĆ KOSTKĄ TO CYFRA, a nie...")
-		return
+			return
 		}
 		howManyThrow = i
 	}
@@ -48,12 +48,12 @@ func throw(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, "Nie znam takiej kostki...")
 			return
 		}
-	
+
 		embed := &discordgo.MessageEmbed{
-			Title: fmt.Sprintf("%v rzucił kostką %v i wypadło: %v", m.Author.Username, strings.ToUpper(command[1]), randomNumber),
-			//Description: fmt.Sprintf("Wynik %v", randomNumber),
+			// Title: fmt.Sprintf("%v rzucił kostką %v i wypadło: %v", m.Author.Username, strings.ToUpper(command[1]), randomNumber),
+			Description: fmt.Sprintf("%v rzucił kostką %v i wypadło: %v", m.Author.Username, strings.ToUpper(command[1]), randomNumber),
 		}
-	
+
 		s.ChannelMessageSendEmbed(m.ChannelID, embed)
 	}
 }
