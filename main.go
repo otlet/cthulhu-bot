@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
 	"golang.org/x/image/math/fixed"
@@ -19,7 +20,8 @@ import (
 
 var (
 	token string
-	// messagez []string
+	// db    *sql.DB
+	err error
 )
 
 func init() {
@@ -28,14 +30,35 @@ func init() {
 }
 
 func main() {
+	// db, err = sql.Open("mysql", "username:password@tcp(127.0.0.1:3306)/test")
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// defer db.Close()
+
+	// db.SetConnMaxLifetime(time.Minute * 3)
+	// db.SetMaxOpenConns(10)
+	// db.SetMaxIdleConns(10)
+
+	// insert, err := db.Query("INSERT INTO test VALUES ( 2, 'TEST' )")
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// defer insert.Close()
+
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
 
+	// Initial handlers
 	dg.AddHandler(ready)
+
+	// Handlers for Chat
 	dg.AddHandler(messageCreate)
+	dg.AddHandler(messageLogging)
+	dg.AddHandler(messagePingPrevent)
 
 	dg.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsGuildMessages)
 
@@ -57,11 +80,44 @@ func main() {
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 	s.UpdateStatus(1, "IDKCloud.com")
 }
+func messageLogging(s *discordgo.Session, m *discordgo.MessageCreate) {
+	fmt.Printf("%v on %v: %v\n", m.Author.Username, m.ChannelID, m.Content)
+}
+
+func messagePingPrevent(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// userGroups, err := s.UserGuilds(100, "", "")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// for i, v := range userGroups {
+	// 	fmt.Println(i, v.ID, v.Name)
+	// }
+
+	fmt.Println(m.Member.Roles)
+	fmt.Println(m.GuildID)
+	guild, err := s.State.Guild(m.GuildID)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(guild.Name)
+
+	for _, v := range guild.Roles {
+		fmt.Println(v)
+	}
+
+	// insert, err := db.Query(
+	// 	"IF NOT EXISTS (SELECT 1 FROM ChatPing WHERE user_id = ? OR group_id = ?) BEGIN INSERT ChatPing(author,user_id,group_id,is_user) VALUES (?,?,?,?) END;",
+	// 	m.Author.ID,
+	// 	m.Author.)
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	// // be careful deferring Queries if you are using transactions
+	// defer insert.Close()
+}
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// messagez = append(messagez, m.Content)
-	// fmt.Println(messagez)
-	fmt.Printf("%v on %v: %v\n", m.Author.Username, m.ChannelID, m.Content)
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
@@ -80,11 +136,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case "->testimage":
 		testImage(s, m)
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("->Gotowe %v", m.Author.Username))
-	// case "->showAllMessages":
-	// 	for _, i := range messagez {
-	// 		s.ChannelMessageSend(m.ChannelID, i)
-	// 	}
-	// 	messagez = messagez[:0]
 	default:
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("->NieWkurwiajMnie %v", m.Author.Username))
 	}
